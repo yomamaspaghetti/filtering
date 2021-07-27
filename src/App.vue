@@ -9,11 +9,11 @@
 					</a>
 				</span>
 			</div>
-			<a class="filter-clear" href="#" @click="clearSelectedTags">Clear</a>
+			<a class="filter-clear" href="#" @click="clearSelectedTags()">Clear</a>
 		</aside>
 	</header>
 	<main>
-		<article class="job" v-for="job in filteredJobs.length > 0 ? filteredJobs : jobs" :key="job.id">
+		<article class="job" v-for="job in filteredJobs.length !== 0 ? filteredJobs : jobs" :key="job.id">
 			<img class="job-img" :src="job.logo" :alt="job.company" />
 			<div class="job-content">
 				<header class="job-main">
@@ -34,12 +34,14 @@
 					</div>
 				</header>
 				<aside class="job-tags">
-					<a class="tag" href="#" @click.prevent="() => addTagToFilter(job.role)">{{ job.role }}</a>
-					<a class="tag" href="#" @click.prevent="() => addTagToFilter(job.level)">{{ job.level }}</a>
+					<a class="tag" href="#" @click.prevent="() => addTagToFilter(job.role, 'role')">{{ job.role }}</a>
+					<a class="tag" href="#" @click.prevent="() => addTagToFilter(job.level, 'level')">{{
+						job.level
+					}}</a>
 					<a
 						class="tag"
 						href="#"
-						@click.prevent="() => addTagToFilter(language)"
+						@click.prevent="() => addTagToFilter(language, 'language')"
 						v-for="(language, index) in job.languages"
 						:key="index"
 					>
@@ -48,7 +50,7 @@
 					<a
 						class="tag"
 						href="#"
-						@click.prevent="() => addTagToFilter(tool)"
+						@click.prevent="() => addTagToFilter(tool, 'tool')"
 						v-for="(tool, index) in job.tools"
 						:key="index"
 					>
@@ -62,55 +64,227 @@
 
 <script>
 	import data from './assets/json/data.json';
+	import { difference } from 'lodash';
 
 	export default {
 		data() {
 			return {
 				jobs: data,
 				selectedTags: [],
+				role: [],
+				level: [],
+				languages: [],
+				tools: [],
 				filteredJobs: []
 			};
 		},
 		methods: {
-			addTagToFilter(item) {
-				if (!this.selectedTags.find((tag) => tag === item)) {
-					this.selectedTags.push(item);
-					this.filteredJobs = this.filterJobs;
-				} else return;
+			/* Tag adding functions */
+			addTagToFilter(item, type) {
+				if (!this.role.find((tag) => tag === item) && type === 'role') {
+					this.role.push(item);
+				} else if (!this.level.find((tag) => tag === item) && type === 'level') {
+					this.level.push(item);
+				} else if (!this.languages.find((tag) => tag === item) && type === 'language') {
+					this.languages.push(item);
+				} else if (!this.tools.find((tag) => tag === item) && type === 'tool') {
+					this.tools.push(item);
+				}
+				this.concatArray();
+
+				this.filtering();
 			},
+
+			/* Call the remove tags from specific category and refresh filtered jobs functions
+			and check if there is any tag selected to clear filtered jobs if not */
 			removeSelectedTag(e) {
+				this.removeRole(e);
+				this.removeLevel(e);
+				this.removeLanguages(e);
+				this.removeTools(e);
 				this.selectedTags = this.selectedTags.filter((tag) => tag !== e);
-				this.filteredJobs = this.filterJobs;
+
+				this.filtering();
+
 				if (this.selectedTags.length === 0) {
 					this.clearFilteredJobs();
 				}
 			},
+
+			/* Remove tags from specific category and refresh filtered jobs functions */
+			removeRole(e) {
+				if (this.role.includes(e)) {
+					this.role = this.role.filter((tag) => tag !== e);
+				}
+			},
+			removeLevel(e) {
+				if (this.level.includes(e)) {
+					this.level = this.level.filter((tag) => tag !== e);
+				}
+			},
+			removeLanguages(e) {
+				if (this.languages.includes(e)) {
+					this.languages = this.languages.filter((tag) => tag !== e);
+				}
+			},
+			removeTools(e) {
+				if (this.tools.includes(e)) {
+					this.tools = this.tools.filter((tag) => tag !== e);
+				}
+			},
+
+			/* Remove all filters */
 			clearSelectedTags() {
+				this.role = [];
+				this.level = [];
+				this.languages = [];
+				this.tools = [];
 				this.selectedTags = [];
 				this.clearFilteredJobs();
 			},
+
+			/* Clear all filtered jobs function */
 			clearFilteredJobs() {
 				this.filteredJobs = [];
-			}
-		},
-		computed: {
-			filterJobs() {
-				return this.jobs.filter(
-					(o) =>
-						this.selectedTags.includes(o.role) ||
-						this.selectedTags.includes(o.level) ||
-						this.selectedTags.includes(...o.languages) ||
-						this.selectedTags.includes(...o.tools)
-				);
+			},
+
+			/* Group all selected tags from every categorie to one array */
+			concatArray() {
+				this.selectedTags = this.selectedTags
+					.concat(difference(this.role, this.selectedTags))
+					.concat(difference(this.level, this.selectedTags))
+					.concat(difference(this.languages, this.selectedTags))
+					.concat(difference(this.tools, this.selectedTags));
+			},
+
+			/* Filters function */
+			filtering() {
+				if (this.role.length !== 0 && this.level.length === 0) {
+					/*************************************/
+					/* If there isn't any role but level */
+					/*************************************/
+
+					/* General */
+					this.filteredJobs = this.jobs.filter((job) => job.role == this.role);
+
+					/* Combining with languages and/or tools */
+					if (this.languages.length !== 0 && this.tools.length === 0) {
+						this.filteredJobs = this.filteredJobs.filter((job) =>
+							job.languages.some((i) => this.languages.indexOf(i) !== -1)
+						);
+					} else if (this.languages.length === 0 && this.tools.length !== 0) {
+						this.filteredJobs = this.filteredJobs.filter((job) =>
+							job.tools.some((i) => this.tools.indexOf(i) !== -1)
+						);
+					} else if (this.languages.length !== 0 && this.tools.length !== 0) {
+						this.filteredJobs = this.filteredJobs.filter(
+							(job) =>
+								job.languages.some((i) => this.languages.indexOf(i) !== -1) && job.role == this.role
+						);
+						this.filteredJobs = this.filteredJobs.concat(
+							difference(
+								this.jobs.filter(
+									(job) =>
+										job.tools.some((i) => this.tools.indexOf(i) !== -1) && job.role == this.role
+								),
+								this.filteredJobs
+							)
+						);
+					}
+				} else if (this.role.length === 0 && this.level.length !== 0) {
+					/*************************************/
+					/* If there isn't any level but role */
+					/*************************************/
+
+					/* General */
+					this.filteredJobs = this.jobs.filter((job) => job.level == this.level);
+
+					/* Combining with languages and/or tools */
+					if (this.languages.length !== 0 && this.tools.length === 0) {
+						this.filteredJobs = this.filteredJobs.filter((job) =>
+							job.languages.some((i) => this.languages.indexOf(i) !== -1)
+						);
+					} else if (this.languages.length === 0 && this.tools.length !== 0) {
+						this.filteredJobs = this.filteredJobs.filter((job) =>
+							job.tools.some((i) => this.tools.indexOf(i) !== -1)
+						);
+					} else if (this.languages.length !== 0 && this.tools.length !== 0) {
+						this.filteredJobs = this.filteredJobs.filter(
+							(job) =>
+								job.languages.some((i) => this.languages.indexOf(i) !== -1) && job.level == this.level
+						);
+						this.filteredJobs = this.filteredJobs.concat(
+							difference(
+								this.jobs.filter(
+									(job) =>
+										job.tools.some((i) => this.tools.indexOf(i) !== -1) && job.level == this.level
+								),
+								this.filteredJobs
+							)
+						);
+					}
+				} else if (this.role.length !== 0 && this.level.length !== 0) {
+					/************************************/
+					/* If there isn't any level or role */
+					/************************************/
+
+					/* General */
+					this.filteredJobs = this.jobs.filter((job) => job.role == this.role);
+					this.filteredJobs = this.filteredJobs.filter((job) => job.level == this.level);
+
+					/* Combining with languages and/or tools */
+					if (this.languages.length !== 0 && this.tools.length === 0) {
+						this.filteredJobs = this.filteredJobs.filter((job) =>
+							job.languages.some((i) => this.languages.indexOf(i) !== -1)
+						);
+					} else if (this.languages.length === 0 && this.tools.length !== 0) {
+						this.filteredJobs = this.filteredJobs.filter((job) =>
+							job.tools.some((i) => this.tools.indexOf(i) !== -1)
+						);
+					} else if (this.languages.length !== 0 && this.tools.length !== 0) {
+						this.filteredJobs = this.filteredJobs.concat(
+							difference(
+								this.filteredJobs.filter((job) =>
+									job.languages.some((i) => this.languages.indexOf(i) !== -1)
+								),
+								this.filteredJobs
+							)
+						);
+						this.filteredJobs = this.filteredJobs.concat(
+							difference(
+								this.filteredJobs.filter((job) => job.tools.some((i) => this.tools.indexOf(i) !== -1)),
+								this.filteredJobs
+							)
+						);
+					}
+				} else if (this.role.length === 0 && this.level.length === 0) {
+					/*********************************/
+					/* If there is any level or role */
+					/*********************************/
+
+					/* General */
+					this.filteredJobs = this.jobs.filter((job) =>
+						job.languages.some((i) => this.languages.indexOf(i) !== -1)
+					);
+					this.filteredJobs = this.filteredJobs.concat(
+						difference(
+							this.jobs.filter((job) => job.tools.some((i) => this.tools.indexOf(i) !== -1)),
+							this.filteredJobs
+						)
+					);
+				}
+
+				/* Sort filtered jobs with id */
+				this.filteredJobs.sort((a, b) => {
+					return a.id - b.id;
+				});
 			}
 		}
 
 		/*
 		TODO:
 		- add responsive design for mobiles
-		- rework jobs filtering so that it shows only jobs that have every tag that is selected
+		- destructure the code to SFC
 		*/
 	};
 </script>
-
-<style></style>
