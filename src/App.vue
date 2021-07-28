@@ -1,19 +1,23 @@
 <template>
-	<header class="head">
-		<aside class="filter" v-if="selectedTags.length >= 1">
-			<div class="filter-tags">
-				<span v-for="(tag, index) in selectedTags" :key="index">
-					<p class="tag tag-addon">{{ tag }}</p>
-					<a class="tag-remove" href="#" @click.prevent="() => removeSelectedTag(tag)">
-						<img src="../images/icon-remove.svg" alt="Remove" />
-					</a>
-				</span>
-			</div>
-			<a class="filter-clear" href="#" @click="clearSelectedTags()">Clear</a>
-		</aside>
-	</header>
-	<main>
-		<article class="job" v-for="job in filteredJobs.length !== 0 ? filteredJobs : jobs" :key="job.id">
+	<header class="head"></header>
+	<aside class="filter" v-if="selectedTags.length >= 1">
+		<div class="filter-tags">
+			<span v-for="(tag, index) in selectedTags" :key="index">
+				<p class="tag tag-addon">{{ tag }}</p>
+				<a class="tag-remove" href="#" @click.prevent="() => removeSelectedTag(tag)">
+					<img src="../images/icon-remove.svg" alt="Remove" />
+				</a>
+			</span>
+		</div>
+		<a class="filter-clear" href="#" @click="clearSelectedTags()">Clear</a>
+	</aside>
+	<main :class="{ 'filter-active': selectedTags.length >= 1 }">
+		<article
+			class="job"
+			:class="{ 'job-featured': job.featured }"
+			v-for="job in filteredJobs.length !== 0 ? filteredJobs : jobs"
+			:key="job.id"
+		>
 			<img class="job-img" :src="job.logo" :alt="job.company" />
 			<div class="job-content">
 				<header class="job-main">
@@ -157,7 +161,7 @@
 					.concat(difference(this.tools, this.selectedTags));
 			},
 
-			/* Filters function */
+			/* Filtering conditions */
 			filtering() {
 				if (this.role.length !== 0 && this.level.length === 0) {
 					/*************************************/
@@ -280,11 +284,5 @@
 				});
 			}
 		}
-
-		/*
-		TODO:
-		- add responsive design for mobiles
-		- destructure the code to SFC
-		*/
 	};
 </script>
