@@ -9,7 +9,7 @@
 				</a>
 			</span>
 		</div>
-		<a class="filter-clear" href="#" @click="clearSelectedTags()">Clear</a>
+		<a class="filter-clear" href="#" @click.prevent="clearSelectedTags()">Clear</a>
 	</aside>
 	<main :class="{ 'filter-active': selectedTags.length >= 1 }">
 		<article
