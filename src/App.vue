@@ -5,7 +5,7 @@
 			<span v-for="(tag, index) in selectedTags" :key="index">
 				<p class="tag tag-addon">{{ tag }}</p>
 				<a class="tag-remove" href="#" @click.prevent="() => removeSelectedTag(tag)">
-					<img src="../images/icon-remove.svg" alt="Remove" />
+					<img src="./assets/images/icon-remove.svg" alt="Remove" />
 				</a>
 			</span>
 		</div>
