@@ -1,68 +1,77 @@
 <template>
 	<header class="head"></header>
-	<aside class="filter" v-if="selectedTags.length >= 1">
-		<div class="filter-tags">
-			<span v-for="(tag, index) in selectedTags" :key="index">
-				<p class="tag tag-addon">{{ tag }}</p>
-				<a class="tag-remove" href="#" @click.prevent="() => removeSelectedTag(tag)">
-					<img src="./assets/images/icon-remove.svg" alt="Remove" />
-				</a>
-			</span>
-		</div>
-		<a class="filter-clear" href="#" @click.prevent="clearSelectedTags()">Clear</a>
-	</aside>
-	<main :class="{ 'filter-active': selectedTags.length >= 1 }">
-		<article
-			class="job"
-			:class="{ 'job-featured': job.featured }"
-			v-for="job in filteredJobs.length !== 0 ? filteredJobs : jobs"
-			:key="job.id"
-		>
-			<img class="job-img" :src="job.logo" :alt="job.company" />
-			<div class="job-content">
-				<header class="job-main">
-					<div class="job-head">
-						<h3>{{ job.company }}</h3>
-						<div class="pills" v-if="job.new || job.featured">
-							<span v-if="job.new" class="pill pill-new">NEW!</span>
-							<span v-if="job.featured" class="pill pill-featured">Featured</span>
-						</div>
+	<main>
+		<div class="container">
+			<aside class="filter" v-if="selectedTags.length >= 1">
+				<div class="filter-tags">
+					<span v-for="(tag, index) in selectedTags" :key="index">
+						<p class="tag tag-addon">{{ tag }}</p>
+						<a class="tag-remove" href="#" @click.prevent="() => removeSelectedTag(tag)">
+							<img src="./assets/images/icon-remove.svg" alt="Remove" />
+						</a>
+					</span>
+				</div>
+				<a class="filter-clear" href="#" @click.prevent="clearSelectedTags()">Clear</a>
+			</aside>
+
+			<div class="jobs" :class="{ 'filter-active': selectedTags.length >= 1 }">
+				<article
+					class="job"
+					:class="{ 'job-featured': job.featured }"
+					v-for="job in filteredJobs.length !== 0 ? filteredJobs : jobs"
+					:key="job.id"
+				>
+					<div class="job-content">
+						<header class="job-main">
+							<img class="job-img" :src="job.logo" :alt="job.company" />
+							<aside>
+								<div class="job-head">
+									<h3>{{ job.company }}</h3>
+									<div class="pills" v-if="job.new || job.featured">
+										<span v-if="job.new" class="pill pill-new">NEW!</span>
+										<span v-if="job.featured" class="pill pill-featured">Featured</span>
+									</div>
+								</div>
+								<a class="job-position" href="#">
+									<h2>{{ job.position }}</h2>
+								</a>
+								<div class="job-details">
+									<p>{{ job.postedAt }}<span>•</span></p>
+									<p>{{ job.contract }}<span>•</span></p>
+									<p>{{ job.location }}</p>
+								</div>
+							</aside>
+						</header>
+						<aside class="job-tags">
+							<a class="tag" href="#" @click.prevent="() => addTagToFilter(job.role, 'role')">{{
+								job.role
+							}}</a>
+							<a class="tag" href="#" @click.prevent="() => addTagToFilter(job.level, 'level')">{{
+								job.level
+							}}</a>
+							<a
+								class="tag"
+								href="#"
+								@click.prevent="() => addTagToFilter(language, 'language')"
+								v-for="(language, index) in job.languages"
+								:key="index"
+							>
+								{{ language }}
+							</a>
+							<a
+								class="tag"
+								href="#"
+								@click.prevent="() => addTagToFilter(tool, 'tool')"
+								v-for="(tool, index) in job.tools"
+								:key="index"
+							>
+								{{ tool }}
+							</a>
+						</aside>
 					</div>
-					<a class="job-position" href="#">
-						<h2>{{ job.position }}</h2>
-					</a>
-					<div class="job-details">
-						<p>{{ job.postedAt }}<span>•</span></p>
-						<p>{{ job.contract }}<span>•</span></p>
-						<p>{{ job.location }}</p>
-					</div>
-				</header>
-				<aside class="job-tags">
-					<a class="tag" href="#" @click.prevent="() => addTagToFilter(job.role, 'role')">{{ job.role }}</a>
-					<a class="tag" href="#" @click.prevent="() => addTagToFilter(job.level, 'level')">{{
-						job.level
-					}}</a>
-					<a
-						class="tag"
-						href="#"
-						@click.prevent="() => addTagToFilter(language, 'language')"
-						v-for="(language, index) in job.languages"
-						:key="index"
-					>
-						{{ language }}
-					</a>
-					<a
-						class="tag"
-						href="#"
-						@click.prevent="() => addTagToFilter(tool, 'tool')"
-						v-for="(tool, index) in job.tools"
-						:key="index"
-					>
-						{{ tool }}
-					</a>
-				</aside>
+				</article>
 			</div>
-		</article>
+		</div>
 	</main>
 </template>
 
